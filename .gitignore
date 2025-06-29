@@ -1,0 +1,10 @@
+# Directories
+.idea
+.vscode
+node_modules
+dist
+
+# Files
+.env
+student.txt
+package-lock.json

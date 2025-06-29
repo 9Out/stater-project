@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Cerita</title>
+    <link rel="icon" href="./images/favicon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+    <a href="#mainContent" class="skip-link" aria-label="Lewati ke konten utama">Lewati ke Konten Utama</a>
+
+    <header>
+        <nav aria-label="Navigasi Utama">
+            <ul>
+                <li><a href="#/" aria-label="Lihat daftar cerita">Cerita</a></li>
+                <li><a href="#/add" aria-label="Tambah cerita baru">Tambah Cerita</a></li>
+                <li><a id="loginNavLink" href="#/login" aria-label="Masuk ke akun Anda">Login</a></li>
+                <li><a id="registerNavLink" href="#/register" aria-label="Daftar akun baru">Registrasi</a></li>
+                <li><button id="logoutButton" aria-label="Keluar dari akun" style="display: none;">Logout</button></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="mainContent">
+        <p>Memuat konten...</p>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Aplikasi Cerita. Semua Hak Cipta Dilindungi.</p>
+    </footer>
+
+      <script>
+        feather.replace(); // Memastikan Feather Icons di render
+      </script>
+    </body>
+</html>

@@ -7,8 +7,8 @@ class AddStoryView {
     this._mainContent = mainContent;
     this._map = null;
     this._currentPhotoFile = null;
-    this._cameraStream = null;
-    this._currentMarker = null; // Tambahkan ini untuk melacak marker saat ini
+    this._currentMarker = null; 
+    this._isCameraActive = false;
   }
 
   render() {
@@ -16,23 +16,31 @@ class AddStoryView {
     this._setupFormElements();
     this._setupCamera();
     this._setupMap();
-    this._setupLocationControls(); // Panggil fungsi setup kontrol lokasi
+    this._setupLocationControls();
+    this._resetPhotoInput();
   }
 
   _setupFormElements() {
-    // ... (kode yang sudah ada tetap sama)
     this._descriptionInput = this._mainContent.querySelector('#description');
     this._photoFileInput = this._mainContent.querySelector('#photoFileInput');
     this._latitudeInput = this._mainContent.querySelector('#latitude');
     this._longitudeInput = this._mainContent.querySelector('#longitude');
     this._displayLat = this._mainContent.querySelector('#displayLat');
     this._displayLon = this._mainContent.querySelector('#displayLon');
-    this._takePhotoButton = this._mainContent.querySelector('#takePhotoButton');
-    this._cameraFeed = this._mainContent.querySelector('#cameraFeed');
-    this._photoCanvas = this._mainContent.querySelector('#photoCanvas');
-    this._capturedImagePreview = this._mainContent.querySelector('#capturedImagePreview');
 
-    // Tambahan elemen untuk kontrol lokasi baru
+    // Elemen terkait kamera dan foto
+    this._cameraButton = this._mainContent.querySelector('#cameraButton'); // Tombol utama kamera (Buka/Ambil)
+    this._cameraFeed = this._mainContent.querySelector('#cameraFeed'); // Video live feed
+    this._photoCanvas = this._mainContent.querySelector('#photoCanvas'); // Canvas untuk ambil foto
+    this._capturedImagePreview = this._mainContent.querySelector('#capturedImagePreview'); // Pratinjau foto yang diambil
+    this._previousImagePreview = this._mainContent.querySelector('#previousImagePreview'); // Pratinjau foto sebelumnya
+    this._photoControls = this._mainContent.querySelector('.photo-controls'); // Container tombol foto
+    this._uploadButtonLabel = this._mainContent.querySelector('.upload-button'); // Label untuk input file
+    this._deletePhotoButton = this._mainContent.querySelector('#deletePhotoButton'); // Tombol hapus foto
+    this._photoStatusMessage = this._mainContent.querySelector('#photoStatusMessage'); // Pesan status foto
+
+
+    // Elemen terkait lokasi
     this._useGpsButton = this._mainContent.querySelector('#useGpsButton');
     this._inputManualButton = this._mainContent.querySelector('#inputManualButton');
     this._clearLocationButton = this._mainContent.querySelector('#clearLocationButton');
@@ -42,75 +50,119 @@ class AddStoryView {
     this._manualLonInput = this._mainContent.querySelector('#manualLon');
     this._setManualLocationButton = this._mainContent.querySelector('#setManualLocationButton');
 
-    this._uploadButtonLabel = this._mainContent.querySelector('.upload-button');
-
-    this._photoFileInput.addEventListener('change', (event) => {
+    // Event listener untuk memilih file dari perangkat
+    this._photoFileInputHandler = (event) => {
       this._currentPhotoFile = event.target.files[0];
       if (this._currentPhotoFile) {
-        this._capturedImagePreview.src = URL.createObjectURL(this._currentPhotoFile);
-        this._capturedImagePreview.style.display = 'block';
-        this._cameraFeed.style.display = 'none';
-        this._photoCanvas.style.display = 'none';
-        this._takePhotoButton.style.display = 'none';
-        CameraHelper.stopCamera(this._cameraStream);
-        this._cameraStream = null;
+        this._displaySelectedPhoto();
+        CameraHelper.stopCamera(); // Pastikan kamera mati jika upload dari device
+        this._isCameraActive = false; // Update flag
+      } else {
+        this._resetPhotoInput();
       }
-    });
+    };
+    this._photoFileInput.addEventListener('change', this._photoFileInputHandler);
+
+    // Event listener untuk tombol hapus foto
+    this._deletePhotoButtonHandler = () => {
+      this._resetPhotoInput();
+    };
+    this._deletePhotoButton.addEventListener('click', this._deletePhotoButtonHandler);
   }
 
   _setupCamera() {
-    // ... (kode _setupCamera Anda tetap sama)
-    this._takePhotoButton.addEventListener('click', async () => {
-        if (!this._cameraStream) {
-            const stream = await CameraHelper.startCamera(this._cameraFeed);
-            if (stream) {
-                this._cameraStream = stream;
-                this._cameraFeed.style.display = 'block';
-                this._photoFileInput.style.display = 'none';
-            } else {
-                alert('Gagal mengakses kamera. Silakan pilih gambar dari perangkat Anda.');
-                this._cameraFeed.style.display = 'none';
-                this._takePhotoButton.style.display = 'none';
-                this._photoFileInput.style.display = 'block';
-                return;
-            }
-        }
-
-        const context = this._photoCanvas.getContext('2d');
-        this._photoCanvas.width = this._cameraFeed.videoWidth;
-        this._photoCanvas.height = this._cameraFeed.videoHeight;
-        context.drawImage(this._cameraFeed, 0, 0, this._photoCanvas.width, this._photoCanvas.height);
-
-        this._photoCanvas.toBlob((blob) => {
-            this._currentPhotoFile = new File([blob], `photo-${Date.now()}.png`, { type: 'image/png' });
-            this._capturedImagePreview.src = URL.createObjectURL(this._currentPhotoFile);
-            this._capturedImagePreview.style.display = 'block';
-            this._cameraFeed.style.display = 'none';
-            this._photoCanvas.style.display = 'none';
-            this._takePhotoButton.style.display = 'none';
-            CameraHelper.stopCamera(this._cameraStream);
-            this._cameraStream = null;
-        }, 'image/png');
-    });
-
-    CameraHelper.startCamera(this._cameraFeed)
-      .then(stream => {
+    // Handler utama untuk tombol kamera (membuka/mengambil)
+    this._cameraButtonHandler = async () => {
+      if (!this._isCameraActive) {
+        // Mode: Buka Kamera
+        const stream = await CameraHelper.startCamera(this._cameraFeed);
         if (stream) {
-          this._cameraStream = stream;
-          this._photoFileInput.style.display = 'none';
+          this._isCameraActive = true;
+          this._cameraFeed.style.display = 'block';
+          this._capturedImagePreview.style.display = 'none';
+          this._photoCanvas.style.display = 'none';
+          this._previousImagePreview.style.display = 'none'; // Sembunyikan pratinjau sebelumnya saat kamera aktif
+          this._photoStatusMessage.style.display = 'none'; // Sembunyikan pesan status
+
+          this._cameraButton.innerHTML = '<i class="fas fa-camera"></i> Ambil Foto'; // Ganti teks tombol
+          this._uploadButtonLabel.style.display = 'none'; // Sembunyikan tombol upload
+          this._deletePhotoButton.style.display = 'block'; // Tampilkan tombol hapus (untuk mematikan kamera)
         } else {
-          this._cameraFeed.style.display = 'none';
-          this._takePhotoButton.style.display = 'none';
-          this._photoFileInput.style.display = 'block';
+          // Gagal akses kamera
+          this._resetPhotoInput();
+          alert('Gagal mengakses kamera. Silakan pilih gambar dari perangkat Anda.');
         }
-      })
-      .catch(() => {
-        this._cameraFeed.style.display = 'none';
-        this._takePhotoButton.style.display = 'none';
-        this._photoFileInput.style.display = 'block';
-      });
+      } else {
+        // Mode: Ambil Foto
+        this._takePicture();
+      }
+    };
+    this._cameraButton.addEventListener('click', this._cameraButtonHandler);
   }
 
+  _takePicture() {
+    if (!CameraHelper.getStream()) {
+      alert('Kamera belum aktif. Silakan klik "Buka Kamera" terlebih dahulu.');
+      return;
+    }
+
+    const context = this._photoCanvas.getContext('2d');
+    this._photoCanvas.width = this._cameraFeed.videoWidth;
+    this._photoCanvas.height = this._cameraFeed.videoHeight;
+    context.drawImage(this._cameraFeed, 0, 0, this._photoCanvas.width, this._photoCanvas.height);
+
+    this._photoCanvas.toBlob((blob) => {
+      this._currentPhotoFile = new File([blob], `photo-${Date.now()}.png`, { type: 'image/png' });
+      this._displaySelectedPhoto();
+      CameraHelper.stopCamera(); // Hentikan kamera setelah foto diambil
+      this._isCameraActive = false; // Update flag
+    }, 'image/png');
+  }
+
+  _displaySelectedPhoto() {
+    if (this._currentPhotoFile) {
+      // Tampilkan foto yang baru diambil di capturedImagePreview
+      this._capturedImagePreview.src = URL.createObjectURL(this._currentPhotoFile);
+      this._capturedImagePreview.style.display = 'block';
+      this._photoStatusMessage.textContent = 'Foto berhasil diambil!';
+      this._photoStatusMessage.style.color = 'green';
+      this._photoStatusMessage.style.display = 'block';
+
+      // Sembunyikan feed kamera dan canvas
+      this._cameraFeed.style.display = 'none';
+      this._photoCanvas.style.display = 'none';
+      this._previousImagePreview.style.display = 'block'; // Tampilkan pratinjau sebelumnya
+      this._previousImagePreview.src = this._capturedImagePreview.src; // Asumsi foto sebelumnya sama dengan yang baru diambil, atau dari sumber lain
+
+      // Atur visibilitas tombol
+      this._cameraButton.style.display = 'none'; // Tombol kamera disembunyikan
+      this._uploadButtonLabel.style.display = 'none'; // Tombol upload disembunyikan
+      this._deletePhotoButton.style.display = 'block'; // Tombol hapus ditampilkan
+
+      // Clear the file input value to allow re-selection of the same file
+      this._photoFileInput.value = '';
+    }
+  }
+
+  _resetPhotoInput() {
+    this._currentPhotoFile = null;
+    this._photoFileInput.value = '';
+    this._capturedImagePreview.src = '#';
+    this._capturedImagePreview.style.display = 'none';
+    this._photoCanvas.style.display = 'none';
+    this._cameraFeed.style.display = 'none';
+    this._isCameraActive = false;
+    this._previousImagePreview.style.display = 'none'; // Sembunyikan pratinjau sebelumnya saat reset
+    this._photoStatusMessage.style.display = 'none'; // Sembunyikan pesan status
+
+    // Tampilkan kembali tombol awal
+    this._cameraButton.innerHTML = '<i class="fas fa-camera"></i> Buka Kamera'; // Kembali ke teks "Buka Kamera"
+    this._cameraButton.style.display = 'block';
+    this._uploadButtonLabel.style.display = 'block';
+    this._deletePhotoButton.style.display = 'none';
+
+    CameraHelper.stopCamera(); // Pastikan kamera mati
+  }
   _setupMap() {
     const mapElement = this._mainContent.querySelector('#addStoryMap');
     if (!mapElement) {
@@ -251,15 +303,21 @@ class AddStoryView {
   }
 
   destroy() {
-    CameraHelper.stopCamera(this._cameraStream);
-    this._cameraStream = null;
+    CameraHelper.stopCamera(); // Pastikan kamera dihentikan saat View dihancurkan
     if (this._map) {
       this._map.remove();
       this._map = null;
     }
-    // Hapus event listener yang ditambahkan ke map untuk mencegah memory leaks
-    // Pastikan event listener dibersihkan jika tidak menggunakan map.remove()
-    // this._map.off('click'); // Jika hanya ada satu event listener 'click'
+    // Hapus event listener untuk mencegah memory leak
+    if (this._cameraButton && this._cameraButtonHandler) {
+      this._cameraButton.removeEventListener('click', this._cameraButtonHandler);
+    }
+    if (this._photoFileInput && this._photoFileInputHandler) {
+      this._photoFileInput.removeEventListener('change', this._photoFileInputHandler);
+    }
+    if (this._deletePhotoButton && this._deletePhotoButtonHandler) {
+      this._deletePhotoButton.removeEventListener('click', this._deletePhotoButtonHandler);
+    }
   }
 }
 

@@ -201,6 +201,37 @@ button[type="submit"]:hover {
     background-color: #c82333;
 }
 
+.button-red {
+    background-color: #dc3545; /* Merah */
+    color: white;
+}
+.button-red:hover {
+    background-color: #c82333;
+}
+
+/* Photo controls */
+.photo-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap; /* Agar tombol wrap di layar kecil */
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Pastikan video, canvas, img tidak memiliki display: none di CSS, karena JS yang akan mengaturnya */
+.camera-feed,
+.photo-canvas,
+.captured-image-preview {
+    width: 100%;
+    max-width: 400px; /* Atau sesuai kebutuhan Anda */
+    height: auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    margin-top: 15px;
+    object-fit: cover;
+    display: none; /* Awalnya tersembunyi, akan diatur JS */
+}
+
 /* Styling untuk form group */
 .form-group {
     margin-bottom: 20px;

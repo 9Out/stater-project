@@ -1,41 +1,46 @@
-class CameraHelper {
-  /**
-   * Starts the camera feed and displays it on the given video element.
-   * @param {HTMLVideoElement} videoElement The video element to display the camera feed.
-   * @returns {Promise<MediaStream|null>} A promise that resolves with the MediaStream object or null if camera access fails.
-   */
-  static async startCamera(videoElement) {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      console.warn('getUserMedia not supported in this browser.');
-      return null;
+// src/scripts/utils/camera-helper.js
+const CameraHelper = {
+  _mediaStream: null,
+
+  async startCamera(videoElement) {
+    if (this._mediaStream && videoElement.srcObject === this._mediaStream) {
+      // Stream already active and assigned to this video element
+      return this._mediaStream;
+    }
+
+    // Stop any existing stream if it's different or not null
+    if (this._mediaStream) {
+        this.stopCamera();
     }
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' } // Prefer rear camera
+        video: true,
       });
+      this._mediaStream = stream;
       videoElement.srcObject = stream;
-      videoElement.play();
+      videoElement.play(); // Pastikan video otomatis diputar
       return stream;
-    } catch (err) {
-      console.error('Error accessing camera: ', err);
-      alert('Gagal mengakses kamera. Pastikan kamera tidak digunakan oleh aplikasi lain dan berikan izin.');
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      alert(`Gagal mengakses kamera: ${error.name}. Pastikan Anda memberikan izin.`);
+      this._mediaStream = null; // Reset if error
       return null;
     }
-  }
+  },
 
-  /**
-   * Stops the given camera stream.
-   * @param {MediaStream} stream The MediaStream object to stop.
-   */
-  static stopCamera(stream) {
-    if (stream) {
-      stream.getTracks().forEach(track => {
+  stopCamera() {
+    if (this._mediaStream) {
+      this._mediaStream.getTracks().forEach((track) => {
         track.stop();
       });
-      console.log('Camera stream stopped.');
+      this._mediaStream = null;
     }
+  },
+
+  getStream() {
+    return this._mediaStream;
   }
-}
+};
 
 export default CameraHelper;

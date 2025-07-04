@@ -8,4 +8,12 @@ document.addEventListener('DOMContentLoaded', () => {
     mainContent: document.querySelector('#mainContent'),
   });
   app.initialize();
+
+  const skipLink = document.querySelector('.skip-link');
+  const mainContent = document.querySelector('#mainContent');
+
+  skipLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    mainContent.focus();
+  });
 });

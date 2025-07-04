@@ -1,5 +1,5 @@
 const createLoginTemplate = () => `
-  <h2 tabindex="0">Login</h2>
+  <h1 tabindex="0">Login</h1>
   <form id="loginForm">
     <div class="form-group">
       <label for="loginEmail">Email:</label>

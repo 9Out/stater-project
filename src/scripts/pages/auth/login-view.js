@@ -25,6 +25,15 @@ class LoginView {
     });
   }
 
+  displaySuccess(message, redirectUrl) {
+    alert(message);
+    window.location.hash = redirectUrl;
+  }
+
+  displayError(message) {
+    alert(message);
+  }
+
   destroy() {
     // No specific cleanup needed for LoginView
   }

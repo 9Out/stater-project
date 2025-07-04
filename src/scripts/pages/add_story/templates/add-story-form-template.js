@@ -1,7 +1,7 @@
 // src/scripts/pages/add_story/templates/add-story-form-template.js
 const createAddStoryFormTemplate = () => `
 <section class="add-story-section">
-  <h2 class="section-title">Tambahkan Cerita Baru</h2>
+  <h1 class="section-title">Tambahkan Cerita Baru</h1>
   <form id="addStoryForm" class="add-story-form">
     <div class="form-group">
       <label for="description">Deskripsi <span class="required">*</span></label>

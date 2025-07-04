@@ -302,6 +302,25 @@ class AddStoryView {
     });
   }
 
+  showAuthenticationError() {
+    alert('Anda harus login untuk menambah cerita!');
+    window.location.hash = '#/login';
+  }
+
+  showValidationError(message) {
+    alert(message);
+  }
+
+  showSuccessMessage(message, redirectUrl) {
+    alert(message);
+    this.destroy();
+    window.location.hash = redirectUrl;
+  }
+
+  showErrorMessage(message) {
+    alert(message);
+  }
+
   destroy() {
     CameraHelper.stopCamera(); // Pastikan kamera dihentikan saat View dihancurkan
     if (this._map) {

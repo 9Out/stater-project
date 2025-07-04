@@ -1,5 +1,6 @@
 import createDetailStoryTemplate from './template/detail-story-template';
 import MapHelper from '../../utils/map-helper'; // Import MapHelper
+import Swal from 'sweetalert2';
 
 class DetailStoryView {
   constructor({ mainContent }) {
@@ -39,6 +40,33 @@ class DetailStoryView {
 
     // Pastikan peta menyesuaikan diri jika div diubah ukurannya atau setelah transisi DOM
     this._map.invalidateSize();
+  }
+
+  showLoading() {
+    Swal.fire({
+      title: 'Memuat Cerita...',
+      didOpen: () => {
+        Swal.showLoading();
+      },
+      allowOutsideClick: false,
+    });
+  }
+
+  hideLoading() {
+    Swal.close();
+  }
+
+  showError(message) {
+    Swal.fire('Error', message, 'error');
+    // Opsi: render template error jika diperlukan
+    this.render({
+      name: 'Error',
+      description: message,
+      photoUrl: 'https://via.placeholder.com/400x250?text=Error',
+      createdAt: new Date().toISOString(),
+      lat: null,
+      lon: null,
+    });
   }
 
   destroy() {

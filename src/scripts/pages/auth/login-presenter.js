@@ -17,13 +17,12 @@ class LoginPresenter {
     try {
       const response = await this._model.login(loginData);
       if (response.success) {
-        alert('Login berhasil!');
-        window.location.hash = '#/';
+        this._view.displaySuccess('Login berhasil!', '/');
       } else {
-        alert(`Login gagal: ${response.message}`);
+        this._view.displayError(`Login gagal: ${response.message}`);
       }
     } catch (error) {
-      alert(`Terjadi kesalahan saat login: ${error.message}`);
+      this._view.displayError(`Terjadi kesalahan saat login: ${error.message}`);
     }
   }
 

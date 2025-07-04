@@ -1,5 +1,5 @@
 const createRegisterTemplate = () => `
-  <h2 tabindex="0">Registrasi</h2>
+  <h1 tabindex="0">Registrasi</h1>
   <form id="registerForm">
     <div class="form-group">
       <label for="registerName">Nama:</label>

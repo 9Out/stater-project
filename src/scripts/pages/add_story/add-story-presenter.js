@@ -9,8 +9,7 @@ class AddStoryPresenter {
 
   async init() {
     if (!this._model.isAuthenticated()) {
-      alert('Anda harus login untuk menambah cerita!');
-      window.location.hash = '#/login';
+      this._view.showAuthenticationError(); // Panggil method di View
       return;
     }
     this._view.render();
@@ -21,21 +20,19 @@ class AddStoryPresenter {
     const storyData = this._view.getStoryData();
 
     if (!storyData.description || !storyData.photo) {
-      alert('Deskripsi dan gambar harus diisi.');
+      this._view.showValidationError('Deskripsi dan gambar harus diisi.'); // Panggil method di View
       return;
     }
 
     try {
       const response = await this._model.addStory(storyData);
       if (response.success) {
-        alert('Cerita berhasil ditambahkan!');
-        this._view.destroy();
-        window.location.hash = '#/';
+        this._view.showSuccessMessage('Cerita berhasil ditambahkan!', '#/'); // Panggil method di View
       } else {
-        alert(`Gagal menambah cerita: ${response.message}`);
+        this._view.showErrorMessage(`Gagal menambah cerita: ${response.message}`);
       }
     } catch (error) {
-      alert(`Terjadi kesalahan saat menambah cerita: ${error.message}`);
+      this._view.showErrorMessage(`Terjadi kesalahan saat menambah cerita: ${error.message}`);
     }
   }
 

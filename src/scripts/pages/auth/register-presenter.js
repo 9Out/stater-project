@@ -17,13 +17,12 @@ class RegisterPresenter {
     try {
       const response = await this._model.register(registerData);
       if (response.success) {
-        alert('Registrasi berhasil! Silakan login.');
-        window.location.hash = '#/login';
+        this._view.displaySuccess('Registrasi berhasil! Silakan login.', '#/login');
       } else {
-        alert(`Registrasi gagal: ${response.message}`);
+        this._view.displayError(`Registrasi gagal: ${response.message}`);
       }
     } catch (error) {
-      alert(`Terjadi kesalahan saat registrasi: ${error.message}`);
+      this._view.displayError(`Terjadi kesalahan saat registrasi: ${error.message}`);
     }
   }
 

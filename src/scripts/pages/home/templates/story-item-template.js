@@ -4,7 +4,7 @@ const createStoryItemTemplate = (story) => `
       <img class="story-image" src="${story.photoUrl}" alt="${story.description.substring(0, 50)}..." tabindex="0">
     </div>
     <div class="story-content">
-      <h3 class="story-name" tabindex="0">${story.name}</h3>
+      <h2 class="story-name" tabindex="0">${story.name}</h2>
       <p class="story-description" tabindex="0">${story.description.substring(0, 150)}...</p>
       <p class="story-date" tabindex="0">Dibuat pada: ${new Date(story.createdAt).toLocaleDateString('id-ID', {
         year: 'numeric', month: 'long', day: 'numeric'

@@ -40,7 +40,7 @@ const createAddStoryFormTemplate = () => `
 
     <div class="form-group location-group">
       <label>Pilih Lokasi (opsional)</label>
-      <h3>Pilih Lokasi Cerita</h3>
+      <h2>Pilih Lokasi Cerita</h2>
       <p class="help-text">Klik di peta, gunakan GPS, atau masukkan koordinat manual untuk memilih lokasi</p>
 
       <div class="location-buttons">

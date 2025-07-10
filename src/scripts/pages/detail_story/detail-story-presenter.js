@@ -1,6 +1,5 @@
 import { parseActivePathname } from '../../routes/url-parser';
 import DetailStoryView from './detail-story-view';
-import Swal from 'sweetalert2'; // Asumsi Anda menggunakan SweetAlert2 untuk notifikasi
 
 class DetailStoryPresenter {
   constructor({ model, mainContent }) {
@@ -35,7 +34,7 @@ class DetailStoryPresenter {
   }
 
   destroy() {
-    this._view.destroy(); // Pastikan view juga dihancurkan
+    this._view.destroy();
   }
 }
 

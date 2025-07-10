@@ -4,162 +4,88 @@ import axios from 'axios';
 class StoryApi {
   static async register({ name, email, password }) {
     try {
-      const response = await fetch(`${CONFIG.BASE_URL}/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
+      const response = await axios.post(`${CONFIG.BASE_URL}/register`, {
+        name,
+        email,
+        password,
       });
-
-      const responseJson = await response.json();
-      
-      // Debug log untuk melihat response
-      console.log('Register response:', responseJson);
-      
-      if (responseJson.error) {
-        throw new Error(responseJson.message);
+      if (response.data.error) {
+        throw new Error(response.data.message);
       }
-      
-      return responseJson;
+      return response.data;
     } catch (error) {
-      console.error('Register error:', error);
-      throw new Error(`Register gagal: ${error.message}`);
+      const message = error.response ? error.response.data.message : 'Terjadi kesalahan jaringan';
+      throw new Error(`Registrasi gagal: ${message}`);
     }
   }
 
   static async login({ email, password }) {
     try {
-      const response = await fetch(`${CONFIG.BASE_URL}/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
+      const response = await axios.post(`${CONFIG.BASE_URL}/login`, {
+        email,
+        password,
       });
-
-      const responseJson = await response.json();
-      
-      // Debug log untuk melihat struktur response
-      console.log('Login response:', responseJson);
-      
-      if (responseJson.error) {
-        throw new Error(responseJson.message);
+      if (response.data.error) {
+        throw new Error(response.data.message);
       }
-
-      // Validasi berbagai kemungkinan struktur response
-      let token = null;
-      
-      if (responseJson.loginResult && responseJson.loginResult.token) {
-        // Format: { error: false, message: "success", loginResult: { userId: "...", name: "...", token: "..." } }
-        token = responseJson.loginResult.token;
-      } else if (responseJson.data && responseJson.data.token) {
-        // Format: { error: false, message: "success", data: { token: "..." } }
-        token = responseJson.data.token;
-      } else if (responseJson.token) {
-        // Format: { error: false, message: "success", token: "..." }
-        token = responseJson.token;
+      const { loginResult } = response.data;
+      if (!loginResult || !loginResult.token) {
+        throw new Error('Token tidak ditemukan dari server.');
       }
-      
-      if (!token) {
-        throw new Error('Token tidak ditemukan dalam response server');
-      }
-      
-      return token;
+      return loginResult.token;
     } catch (error) {
-      console.error('Login error:', error);
-      throw new Error(`Login gagal: ${error.message}`);
+      const message = error.response ? error.response.data.message : 'Terjadi kesalahan jaringan';
+      throw new Error(`Login gagal: ${message}`);
     }
   }
 
-  static async getAllStories(token, page = 1, size = 10, location = 0) {
+  static async getAllStories(token) {
     try {
-      const headers = token ? { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      } : {
-        'Content-Type': 'application/json'
-      };
-      
-      const response = await fetch(`${CONFIG.BASE_URL}/stories?page=${page}&size=${size}&location=${location}`, {
-        headers,
+      const response = await axios.get(`${CONFIG.BASE_URL}/stories`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      
-      const responseJson = await response.json();
-      
-      console.log('Get stories response:', responseJson);
-      
-      if (responseJson.error) {
-        throw new Error(responseJson.message);
-      }
-      
-      // Validasi response untuk stories
-      if (responseJson.listStory) {
-        return responseJson.listStory;
-      } else if (responseJson.data && responseJson.data.listStory) {
-        return responseJson.data.listStory;
-      } else {
-        throw new Error('Data stories tidak ditemukan');
-      }
+      return response.data.listStory;
     } catch (error) {
-      console.error('Get stories error:', error);
-      throw new Error(`Gagal mengambil stories: ${error.message}`);
+      const message = error.response ? error.response.data.message : 'Terjadi kesalahan jaringan';
+      throw new Error(`Gagal mengambil cerita: ${message}`);
     }
   }
 
   static async addStory({ description, photo, lat, lon }, token) {
-    try {
-      const formData = new FormData();
-      formData.append('description', description);
-      formData.append('photo', photo);
-      
-      if (lat !== undefined && lon !== undefined && lat !== null && lon !== null) {
-        formData.append('lat', lat.toString());
-        formData.append('lon', lon.toString());
-      }
+    const formData = new FormData();
+    formData.append('description', description);
+    formData.append('photo', photo);
+    if (lat !== undefined && lon !== undefined) {
+      formData.append('lat', lat);
+      formData.append('lon', lon);
+    }
 
-      const response = await fetch(`${CONFIG.BASE_URL}/stories`, {
-        method: 'POST',
+    try {
+      const response = await axios.post(`${CONFIG.BASE_URL}/stories`, formData, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
         },
-        body: formData,
       });
-      
-      const responseJson = await response.json();
-      
-      console.log('Add story response:', responseJson);
-      
-      if (responseJson.error) {
-        throw new Error(responseJson.message);
+      if (response.data.error) {
+        throw new Error(response.data.message);
       }
-      
-      return responseJson;
+      return response.data;
     } catch (error) {
-      console.error('Add story error:', error);
-      throw new Error(`Gagal menambah story: ${error.message}`);
+      const message = error.response ? error.response.data.message : 'Terjadi kesalahan jaringan';
+      throw new Error(`Gagal menambah cerita: ${message}`);
     }
   }
 
   static async getDetailStory(id, token) {
-      const response = await axios.get(`${CONFIG.BASE_URL}/stories/${id}`, {
-          headers: {
-              Authorization: `Bearer ${token}`,
-          },
-      });
-      return response.data.story; // Kembalikan objek story langsung
-  }
-
-  // Method tambahan untuk debugging
-  static async testConnection() {
     try {
-      const response = await fetch(`${CONFIG.BASE_URL}/`);
-      const responseJson = await response.json();
-      console.log('API Connection test:', responseJson);
-      return responseJson;
+      const response = await axios.get(`${CONFIG.BASE_URL}/stories/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return response.data.story;
     } catch (error) {
-      console.error('Connection test failed:', error);
-      throw error;
+      const message = error.response ? error.response.data.message : 'Terjadi kesalahan jaringan';
+      throw new Error(`Gagal memuat detail cerita: ${message}`);
     }
   }
 }

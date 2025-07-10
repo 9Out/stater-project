@@ -1,12 +1,12 @@
 import LoginView from './login-view';
-import StoryModel from '../../models/story-model'; // Perubahan path import
+import PushNotificationManager from '../../utils/push-notification-manager';
 
 class LoginPresenter {
   constructor({ model, mainContent }) {
     this._model = model;
     this._view = new LoginView({ mainContent });
   }
-
+  
   async init() {
     this._view.render();
     this._view.bindSubmit(this._onSubmit.bind(this));
@@ -17,12 +17,15 @@ class LoginPresenter {
     try {
       const response = await this._model.login(loginData);
       if (response.success) {
-        this._view.displaySuccess('Login berhasil!', '/');
+        alert('Login berhasil!');
+        await PushNotificationManager.subscribePush();
+        window.location.hash = '#/';
+        window.location.reload();
       } else {
-        this._view.displayError(`Login gagal: ${response.message}`);
+        alert(`Login gagal: ${response.message}`);
       }
     } catch (error) {
-      this._view.displayError(`Terjadi kesalahan saat login: ${error.message}`);
+      alert(`Terjadi kesalahan saat login: ${error.message}`);
     }
   }
 

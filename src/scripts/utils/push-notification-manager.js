@@ -1,3 +1,5 @@
+// src/scripts/utils/push-notification-manager.js
+
 import CONFIG from '../config';
 
 const PushNotificationManager = {
@@ -22,6 +24,8 @@ const PushNotificationManager = {
     }
 
     console.log('Sudah berlangganan notifikasi: ', subscription);
+    // Kirim subscription yang sudah ada jika belum dikirim
+    await this.sendSubscriptionToServer(subscription);
     return subscription;
   },
 
@@ -49,14 +53,16 @@ const PushNotificationManager = {
     const outputArray = new Uint8Array(rawData.length);
 
     for (let i = 0; i < rawData.length; ++i) {
-      outputArray.set([rawData.charCodeAt(i)], i);
+      outputArray[i] = rawData.charCodeAt(i);
     }
     return outputArray;
   },
 
   async sendSubscriptionToServer(subscription) {
-    const apiUrl = 'https://story-api.dicoding.dev/v1/push/subscribe'; // Sesuaikan dengan endpoint API
-    const userToken = localStorage.getItem('USER_TOKEN'); // Asumsi Anda menyimpan token
+    // Endpoint API yang benar adalah /subscriptions, bukan /push/subscribe
+    const apiUrl = `${CONFIG.BASE_URL}/subscriptions`; 
+    // Kunci localStorage yang benar adalah 'userToken'
+    const userToken = localStorage.getItem('userToken');
 
     if (!userToken) {
       console.warn('Tidak ada token pengguna, langganan tidak dikirim ke server.');
@@ -74,9 +80,10 @@ const PushNotificationManager = {
       });
 
       const responseJson = await response.json();
-      console.log('Berhasil mengirim langganan ke server:', responseJson);
-      if (!response.ok) {
+      if (response.status !== 201) { // API mengembalikan status 201 untuk sukses
         console.error('Gagal mengirim langganan ke server:', responseJson.message);
+      } else {
+        console.log('Berhasil mengirim langganan ke server:', responseJson);
       }
     } catch (error) {
       console.error('Terjadi kesalahan saat mengirim langganan ke server:', error);

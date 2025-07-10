@@ -3,10 +3,12 @@ import FavoriteStoryIdb from '../../utils/indexeddb-helper';
 const createSavedStoryItemTemplate = (story) => `
   <article class="story-item">
       <div class="story-header">
+        <a href="#/stories/${story.id}">
           <img class="story-image" src="${story.photoUrl}" alt="Gambar dari cerita ${story.name}">
+        </a>
       </div>
       <div class="story-content">
-          <h3 class="story-name">${story.name}</h3>
+          <h3 class="story-name"><a href="#/stories/${story.id}">${story.name}</a></h3>
           <p class="story-description">${story.description.substring(0, 150)}...</p>
           <button class="btn-delete" data-id="${story.id}" aria-label="Hapus cerita ${story.name} dari daftar simpan">Hapus</button>
       </div>
@@ -50,11 +52,13 @@ class SavedStoriesPage {
         const storyId = event.target.dataset.id;
         await FavoriteStoryIdb.deleteStory(storyId);
         alert('Cerita berhasil dihapus.');
-
-        // Render ulang hanya daftar cerita setelah dihapus
         await this._renderStoryList();
       });
     });
+  }
+
+  destroy() {
+    // Tidak ada pembersihan spesifik yang diperlukan di sini
   }
 }
 

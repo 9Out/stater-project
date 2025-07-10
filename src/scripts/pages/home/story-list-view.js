@@ -17,6 +17,7 @@ class StoryListView {
 
     storyListContainer.innerHTML = stories.map(story => createStoryItemTemplate(story)).join('');
     this._initializeMap(storyMapElement, stories);
+    this.afterRender();
   }
 
   async afterRender() {

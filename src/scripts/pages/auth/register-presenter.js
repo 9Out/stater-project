@@ -1,5 +1,4 @@
 import RegisterView from './register-view';
-import StoryModel from '../../models/story-model'; // Perubahan path import
 
 class RegisterPresenter {
   constructor({ model, mainContent }) {
@@ -17,12 +16,14 @@ class RegisterPresenter {
     try {
       const response = await this._model.register(registerData);
       if (response.success) {
-        this._view.displaySuccess('Registrasi berhasil! Silakan login.', '#/login');
+        alert('Registrasi berhasil! Silakan login.');
+        window.location.hash = '#/login';
+        window.location.reload();
       } else {
-        this._view.displayError(`Registrasi gagal: ${response.message}`);
+        alert(`Registrasi gagal: ${response.message}`);
       }
     } catch (error) {
-      this._view.displayError(`Terjadi kesalahan saat registrasi: ${error.message}`);
+      alert(`Terjadi kesalahan saat registrasi: ${error.message}`);
     }
   }
 

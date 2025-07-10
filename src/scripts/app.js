@@ -3,6 +3,7 @@ import StoryModel from '../scripts/models/story-model';
 import { startViewTransitionIfSupported } from '../scripts/utils/view-transition';
 import { getActiveRoute, parseActivePathname } from '../scripts/routes/url-parser';
 import NotificationHelper from '../scripts/utils/notification-helper';
+import PushNotificationManager from '../scripts/utils/push-notification-manager'; // Import
 import NotFoundPage from '../scripts/pages/not-found-page';
 
 class App {
@@ -22,7 +23,7 @@ class App {
       await this._storyModel.logout();
       alert('Anda telah logout.');
       window.location.hash = '#/login';
-      this._updateAuthNavUI();
+      window.location.reload(); // Reload setelah logout
     });
     this._updateAuthNavUI();
   }
@@ -52,15 +53,14 @@ class App {
 
     if (presenterClass) {
         startViewTransitionIfSupported(async () => {
-          this._mainContent.innerHTML = ''; // Kosongkan konten utama
+          this._mainContent.innerHTML = '';
 
-          const component = new pageClass({
+          const component = new presenterClass({
             model: this._storyModel,
             mainContent: this._mainContent,
           });
 
           this._currentPresenter = component;
-            // Cek jika ini Presenter atau Page biasa
           if (typeof component.init === 'function') {
             await component.init();
           } else if (typeof component.render === 'function') {
@@ -75,12 +75,17 @@ class App {
 
   async initialize() {
     window.addEventListener('hashchange', () => this.renderPage());
-    window.addEventListener('load', () => this.renderPage());
+    window.addEventListener('load', async () => { // Jadikan async
+      await this.renderPage();
 
-    await this.renderPage();
-
-    // Minta izin notifikasi saat aplikasi pertama kali dimuat
-    NotificationHelper._requestPermission();
+      // Minta izin notifikasi
+      await NotificationHelper._requestPermission();
+      
+      // Jika pengguna sudah login, coba subscribe push notif
+      if (this._storyModel.isAuthenticated()) {
+        await PushNotificationManager.subscribePush();
+      }
+    });
   }
 }
 

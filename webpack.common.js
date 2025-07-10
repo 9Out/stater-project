@@ -40,7 +40,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      template: path.resolve(__dirname, '../starter-project-with-webpack/src/index.html'),
+      template: path.resolve(__dirname, './src/index.html'),
     }),
     new CopyWebpackPlugin({
       patterns: [

@@ -1,5 +1,6 @@
 // CSS imports
 import '../styles/styles.css';
+import PushNotificationManager from './utils/push-notification-manager';
 
 import App from '../scripts/app.js';
 
@@ -18,14 +19,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('Service Worker registered: ', registration);
-      })
-      .catch(registrationError => {
-        console.log('Service Worker registration failed: ', registrationError);
-      });
-  });
-}
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js')
+        .then(registration => {
+          console.log('Service Worker registered: ', registration);
+          PushNotificationManager.subscribePush();
+        })
+        .catch(registrationError => {
+          console.log('Service Worker registration failed: ', registrationError);
+        });
+    });
+  }
 });

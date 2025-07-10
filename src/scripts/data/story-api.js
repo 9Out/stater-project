@@ -141,13 +141,13 @@ class StoryApi {
     }
   }
 
-  async getDetailStory(id, token) {
-    const response = await axios.get(`${CONFIG.BASE_URL}/stories/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`, // Ini yang menangani pengiriman token
-      },
-    });
-    return response.data;
+  static async getDetailStory(id, token) {
+      const response = await axios.get(`${CONFIG.BASE_URL}/stories/${id}`, {
+          headers: {
+              Authorization: `Bearer ${token}`,
+          },
+      });
+      return response.data.story; // Kembalikan objek story langsung
   }
 
   // Method tambahan untuk debugging

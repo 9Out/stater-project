@@ -52,20 +52,23 @@ class App {
 
     if (presenterClass) {
         startViewTransitionIfSupported(async () => {
-            this._mainContent.innerHTML = '';
+          this._mainContent.innerHTML = ''; // Kosongkan konten utama
+
+          const component = new pageClass({
+            model: this._storyModel,
+            mainContent: this._mainContent,
+          });
+
+          this._currentPresenter = component;
             // Cek jika ini Presenter atau Page biasa
-            if (presenterClass.prototype.hasOwnProperty('init')) {
-                 const presenter = new presenterClass({
-                    model: this._storyModel,
-                    mainContent: this._mainContent,
-                });
-                this._currentPresenter = presenter;
-                await presenter.init();
-            } else {
-                const page = new presenterClass();
-                this._mainContent.innerHTML = await page.render();
-                await page.afterRender();
-            }
+          if (typeof component.init === 'function') {
+            await component.init();
+          } else if (typeof component.render === 'function') {
+            this._mainContent.innerHTML = await component.render();
+            if (typeof component.afterRender === 'function') {
+              await component.afterRender();
+             }
+          }
         });
     }
   }

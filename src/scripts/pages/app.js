@@ -19,6 +19,7 @@ class StoryListPresenter {
     const response = await this._model.fetchAllStories();
     if (response.success) {
       this._view.render(response.data);
+      // await this._view.afterRender();
     } else {
       this._view.render([]);
       alert(`Gagal memuat cerita: ${response.message}`);

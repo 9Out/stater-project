@@ -1,12 +1,12 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
 
 module.exports = {
   mode: 'development', // Atau 'production' jika ingin build untuk produksi
 
   entry: {
-    // Path ini benar jika webpack.common.js ada di root 'starter-project-with-webpack'
     app: path.resolve(__dirname, './src/scripts/index.js'),
   },
   output: {
@@ -24,11 +24,9 @@ module.exports = {
           },
           {
             loader: 'css-loader',
-            // Jika ada masalah dengan @import di CSS, tambahkan options ini:
-            // options: { importLoaders: 1 }
           },
         ],
-        type: 'javascript/auto', // <--- Pastikan ini ada!
+        type: 'javascript/auto',
       },
       {
         test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
@@ -42,7 +40,6 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       filename: 'index.html',
-      // Path ini juga benar jika webpack.common.js ada di root 'starter-project-with-webpack'
       template: path.resolve(__dirname, '../starter-project-with-webpack/src/index.html'),
     }),
     new CopyWebpackPlugin({
@@ -55,7 +52,15 @@ module.exports = {
           from: path.resolve(__dirname, 'node_modules/leaflet/dist/images'),
           to: path.resolve(__dirname, 'dist/images'), // Salin ikon Leaflet ke dist/images
         },
+        {
+          from: path.resolve(__dirname, './src/public/'),
+          to: path.resolve(__dirname, 'dist/'),
+        },
       ],
+    }),
+    new WorkboxWebpackPlugin.InjectManifest({
+      swSrc: path.resolve(__dirname, './src/sw.js'),
+      swDest: 'sw.js',
     }),
   ],
 };

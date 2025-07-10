@@ -2,6 +2,8 @@ import routes from '../scripts/routes/routes';
 import StoryModel from '../scripts/models/story-model';
 import { startViewTransitionIfSupported } from '../scripts/utils/view-transition';
 import { getActiveRoute, parseActivePathname } from '../scripts/routes/url-parser';
+import NotificationHelper from '../scripts/utils/notification-helper';
+import NotFoundPage from '../scripts/pages/not-found-page';
 
 class App {
   constructor({ mainContent }) {
@@ -38,8 +40,8 @@ class App {
   }
 
   async renderPage() {
-    const url = window.location.hash.slice(1).toLowerCase() || '/';
-    const presenterClass = routes[url] || routes['/'];
+    const url = getActiveRoute();
+    const presenterClass = routes[url] || NotFoundPage;
     const urlSegments = parseActivePathname();
 
     if (this._currentPresenter && typeof this._currentPresenter.destroy === 'function') {
@@ -49,20 +51,22 @@ class App {
     this._updateAuthNavUI();
 
     if (presenterClass) {
-      startViewTransitionIfSupported(async () => {
-        this._mainContent.innerHTML = '';
-        const presenter = new presenterClass({
-          model: this._storyModel,
-          mainContent: this._mainContent,
+        startViewTransitionIfSupported(async () => {
+            this._mainContent.innerHTML = '';
+            // Cek jika ini Presenter atau Page biasa
+            if (presenterClass.prototype.hasOwnProperty('init')) {
+                 const presenter = new presenterClass({
+                    model: this._storyModel,
+                    mainContent: this._mainContent,
+                });
+                this._currentPresenter = presenter;
+                await presenter.init();
+            } else {
+                const page = new presenterClass();
+                this._mainContent.innerHTML = await page.render();
+                await page.afterRender();
+            }
         });
-        this._currentPresenter = presenter;
-        await presenter.init();
-      });
-    } else {
-      startViewTransitionIfSupported(async () => {
-        this._mainContent.innerHTML = '<h2>404 Not Found</h2><p>Halaman yang Anda minta tidak ditemukan.</p>';
-      });
-      this._currentPresenter = null;
     }
   }
 
@@ -71,6 +75,9 @@ class App {
     window.addEventListener('load', () => this.renderPage());
 
     await this.renderPage();
+
+    // Minta izin notifikasi saat aplikasi pertama kali dimuat
+    NotificationHelper._requestPermission();
   }
 }
 

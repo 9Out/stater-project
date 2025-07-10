@@ -1,5 +1,6 @@
 import StoryApi from '../data/story-api';
 import User from '../data/user';
+import FavoriteStoryIdb from '../utils/indexeddb-helper';
 
 class StoryModel {
   constructor() {
@@ -50,10 +51,27 @@ class StoryModel {
 
   async fetchAllStories() {
     try {
-      this._stories = await StoryApi.getAllStories(this._userToken);
-      return { success: true, data: this._stories };
+        const storiesFromApi = await StoryApi.getAllStories(this._userToken);
+        // Hapus data lama dan simpan data baru
+        await FavoriteStoryIdb.clearStories();
+        storiesFromApi.forEach(story => {
+            FavoriteStoryIdb.putStory(story);
+        });
+        this._stories = storiesFromApi;
+        return { success: true, data: this._stories };
     } catch (error) {
-      return { success: false, message: error.message };
+        // Jika network gagal, coba ambil dari IndexedDB
+        console.log('Gagal fetch dari API, mencoba dari IndexedDB...', error);
+        try {
+            const storiesFromDb = await FavoriteStoryIdb.getAllStories();
+            if (storiesFromDb && storiesFromDb.length > 0) {
+                this._stories = storiesFromDb;
+                return { success: true, data: this._stories, fromCache: true };
+            }
+            return { success: false, message: 'Gagal memuat cerita dari network maupun cache.' };
+        } catch (dbError) {
+            return { success: false, message: `Gagal memuat cerita: ${dbError.message}` };
+        }
     }
   }
 
@@ -65,6 +83,7 @@ class StoryModel {
       return { success: false, message: error.message };
     }
   }
+  
   async getDetailStory(id) {
     const token = this.getToken(); // Mengambil token
     if (!token) {
